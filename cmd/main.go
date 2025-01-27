@@ -4,6 +4,10 @@ import (
 	"log"
 
 	"github.com/IndraNurfa/music-catalog/internal/configs"
+	membershipsHandler "github.com/IndraNurfa/music-catalog/internal/handler/memberships"
+	"github.com/IndraNurfa/music-catalog/internal/models/memberships"
+	membershipsRepo "github.com/IndraNurfa/music-catalog/internal/repository/memberships"
+	membershipsSvc "github.com/IndraNurfa/music-catalog/internal/service/memberships"
 	"github.com/IndraNurfa/music-catalog/pkg/internalsql"
 	"github.com/gin-gonic/gin"
 )
@@ -33,6 +37,16 @@ func main() {
 		log.Fatalf("failed to connect to database, error: %v", err)
 	}
 
+	db.AutoMigrate(&memberships.User{})
+
 	r := gin.Default()
+
+	membershipRepo := membershipsRepo.NewRepository(db)
+
+	membershipSvc := membershipsSvc.NewService(cfg, membershipRepo)
+
+	membershipsHandler := membershipsHandler.NewHandler(r, membershipSvc)
+	membershipsHandler.RegisterRoute()
+
 	r.Run(cfg.Service.Port)
 }
