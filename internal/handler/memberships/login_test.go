@@ -3,7 +3,6 @@ package memberships
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,38 +13,43 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-func TestHandler_SignUp(t *testing.T) {
+func TestHandler_Login(t *testing.T) {
 	ctrlMock := gomock.NewController(t)
 	defer ctrlMock.Finish()
 
 	mockSvc := NewMockservice(ctrlMock)
-
 	tests := []struct {
 		name               string
 		mockFn             func()
 		expectedStatusCode int
+		expectedBody       memberships.LoginResponse
+		wantErr            bool
 	}{
 		{
 			name: "success",
 			mockFn: func() {
-				mockSvc.EXPECT().SignUp(memberships.SignUpRequest{
+				mockSvc.EXPECT().Login(memberships.LoginRequest{
 					Email:    "test@gmail.com",
-					Username: "testusername",
 					Password: "password",
-				}).Return(nil)
+				}).Return("accessToken", nil)
 			},
-			expectedStatusCode: 201,
+			expectedStatusCode: 200,
+			expectedBody: memberships.LoginResponse{
+				AccessToken: "accessToken",
+			},
+			wantErr: false,
 		},
 		{
 			name: "failed",
 			mockFn: func() {
-				mockSvc.EXPECT().SignUp(memberships.SignUpRequest{
+				mockSvc.EXPECT().Login(memberships.LoginRequest{
 					Email:    "test@gmail.com",
-					Username: "testusername",
 					Password: "password",
-				}).Return(errors.New("username or email exists"))
+				}).Return("", assert.AnError)
 			},
 			expectedStatusCode: 400,
+			expectedBody:       memberships.LoginResponse{},
+			wantErr:            true,
 		},
 	}
 	for _, tt := range tests {
@@ -60,10 +64,9 @@ func TestHandler_SignUp(t *testing.T) {
 			h.RegisterRoute()
 			w := httptest.NewRecorder()
 
-			endpoint := `/memberships/sign-up`
-			model := memberships.SignUpRequest{
+			endpoint := `/memberships/login`
+			model := memberships.LoginRequest{
 				Email:    "test@gmail.com",
-				Username: "testusername",
 				Password: "password",
 			}
 
@@ -76,6 +79,17 @@ func TestHandler_SignUp(t *testing.T) {
 			h.ServeHTTP(w, req)
 
 			assert.Equal(t, tt.expectedStatusCode, w.Code)
+
+			if !tt.wantErr {
+				res := w.Result()
+				defer res.Body.Close()
+
+				response := memberships.LoginResponse{}
+				err = json.Unmarshal(w.Body.Bytes(), &response)
+				assert.NoError(t, err)
+
+				assert.Equal(t, tt.expectedBody, response)
+			}
 		})
 	}
 }
