@@ -1,5 +1,10 @@
 service:
   port: ":9999"
+  SecretJWT: "this-is-a-secret"
 
 database:
-  dataSourceName: "postgres://admin:root@localhost:5432/music_catalog_db?sslmode=disable"
+  dataSourceName: "postgres://admin:root@localhost:5432/fastcampus_db?sslmode=disable"
+
+SpotifyConfig:
+  clientID: "c47f63118da7495bbe7e54c6dfa4c62b"
+  clientSecret: "595adab931d14610a7920f3d35d6730a"

@@ -2,12 +2,17 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/IndraNurfa/music-catalog/internal/configs"
 	membershipsHandler "github.com/IndraNurfa/music-catalog/internal/handler/memberships"
+	tracksHandler "github.com/IndraNurfa/music-catalog/internal/handler/tracks"
 	"github.com/IndraNurfa/music-catalog/internal/models/memberships"
 	membershipsRepo "github.com/IndraNurfa/music-catalog/internal/repository/memberships"
+	"github.com/IndraNurfa/music-catalog/internal/repository/spotify"
 	membershipsSvc "github.com/IndraNurfa/music-catalog/internal/service/memberships"
+	"github.com/IndraNurfa/music-catalog/internal/service/tracks"
+	"github.com/IndraNurfa/music-catalog/pkg/httpclient"
 	"github.com/IndraNurfa/music-catalog/pkg/internalsql"
 	"github.com/gin-gonic/gin"
 )
@@ -41,12 +46,20 @@ func main() {
 
 	r := gin.Default()
 
+	httpClient := httpclient.NewClient(&http.Client{})
+
+	spotifyOutbound := spotify.NewSpotifyOutbound(cfg, httpClient)
+
 	membershipRepo := membershipsRepo.NewRepository(db)
 
 	membershipSvc := membershipsSvc.NewService(cfg, membershipRepo)
+	trackSvc := tracks.NewService(spotifyOutbound)
 
 	membershipsHandler := membershipsHandler.NewHandler(r, membershipSvc)
 	membershipsHandler.RegisterRoute()
+
+	tracksHandler := tracksHandler.NewHandler(r, trackSvc)
+	tracksHandler.RegisterRoute()
 
 	r.Run(cfg.Service.Port)
 }
