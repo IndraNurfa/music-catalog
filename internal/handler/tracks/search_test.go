@@ -10,7 +10,7 @@ import (
 	"github.com/IndraNurfa/music-catalog/pkg/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	gomock "go.uber.org/mock/gomock"
+	"go.uber.org/mock/gomock"
 )
 
 func TestHandler_Search(t *testing.T) {
@@ -58,7 +58,7 @@ func TestHandler_Search(t *testing.T) {
 			},
 			wantErr: false,
 			mockFn: func() {
-				mockSvc.EXPECT().Search(gomock.Any(), "kingslayer", 10, 1).Return(&spotify.SearchResponse{
+				mockSvc.EXPECT().Search(gomock.Any(), "kingslayer", 10, 1, uint(1)).Return(&spotify.SearchResponse{
 					Limit:  10,
 					Offset: 0,
 					Items: []spotify.SpotifyTrackObject{
@@ -93,7 +93,7 @@ func TestHandler_Search(t *testing.T) {
 			expectedBody:       spotify.SearchResponse{},
 			wantErr:            true,
 			mockFn: func() {
-				mockSvc.EXPECT().Search(gomock.Any(), "kingslayer", 10, 1).Return(nil, assert.AnError)
+				mockSvc.EXPECT().Search(gomock.Any(), "kingslayer", 10, 1, uint(1)).Return(nil, assert.AnError)
 			},
 		},
 	}
@@ -101,6 +101,7 @@ func TestHandler_Search(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockFn()
 			api := gin.New()
+
 			h := &Handler{
 				Engine:  api,
 				service: mockSvc,
