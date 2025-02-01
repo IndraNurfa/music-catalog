@@ -26,7 +26,7 @@ func (s *service) Login(request memberships.LoginRequest) (string, error) {
 		return "", errors.New("invalid password")
 	}
 
-	accessToken, err := jwt.CreateToken(int64(userDetails.ID), userDetails.Username, s.cfg.Service.SecretJWT)
+	accessToken, err := jwt.CreateToken(userDetails.ID, userDetails.Username, s.cfg.Service.SecretJWT)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create token")
 	}
