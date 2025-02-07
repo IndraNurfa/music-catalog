@@ -12,17 +12,11 @@ import (
 )
 
 type SpotifySearchResponse struct {
-	Tracks SpotifyTrack `json:"tracks"`
+	Tracks SpotifyTracks `json:"tracks"`
 }
 
-type SpotifyTrack struct {
-	Href     string               `json:"href"`
-	Limit    int                  `josn:"limit"`
-	Next     *string              `json:"next"`
-	Offset   int                  `json:"offset"`
-	Previous *string              `json:"previous"`
-	Total    int                  `json:"total"`
-	Items    []SpotifyTrackObject `json:"items"`
+type SpotifyRecommendationResponse struct {
+	Tracks []SpotifyTrackObject `json:"tracks"`
 }
 
 type SpotifyTracks struct {
